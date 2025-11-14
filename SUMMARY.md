@@ -100,7 +100,7 @@ PASS  __tests__/urlValidation.test.ts
 PASS  __tests__/App.test.tsx
   ✓ renders correctly (1 test)
 
-Tests:       14 passed, 14 total
+Tests:       15 passed, 15 total
 Time:        1.383s
 ```
 
