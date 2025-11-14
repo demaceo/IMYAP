@@ -7,7 +7,7 @@ A fully-functional cross-platform mobile application for converting playlists be
 ## 📊 Project Statistics
 
 - **Lines of Code**: ~1,500+ (TypeScript/JavaScript)
-- **Test Coverage**: 14 tests, 100% passing
+- **Test Coverage**: 15 tests, 100% passing
 - **Security Issues**: 0 vulnerabilities found
 - **Accessibility**: WCAG AAA compliant
 - **Platforms**: iOS & Android
