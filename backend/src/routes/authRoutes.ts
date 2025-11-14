@@ -18,11 +18,12 @@ router.get('/login', (_req: Request, res: Response) => {
 /**
  * Spotify OAuth callback
  */
-router.get('/callback', async (req: Request, res: Response) => {
+router.get('/callback', async (req: Request, res: Response): Promise<void> => {
   const {code} = req.query;
 
   if (!code || typeof code !== 'string') {
-    return res.status(400).json({error: 'Authorization code missing'});
+    res.status(400).json({error: 'Authorization code missing'});
+    return;
   }
 
   try {
@@ -73,10 +74,11 @@ router.post('/logout', (req: Request, res: Response) => {
       if (err) {
         return res.status(500).json({error: 'Logout failed'});
       }
-      res.json({success: true});
+      return res.json({success: true});
     });
+    return;
   } else {
-    res.json({success: true});
+    return res.json({success: true});
   }
 });
 
