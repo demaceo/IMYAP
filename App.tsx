@@ -149,8 +149,7 @@ const App = (): JSX.Element => {
         <View style={styles.content}>
           <Text
             style={styles.instructionText}
-            accessible={true}
-            accessibilityRole="text">
+            accessible={true}>
             Paste a playlist or song URL from Apple Music or Spotify
           </Text>
 
