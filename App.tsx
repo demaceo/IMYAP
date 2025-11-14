@@ -447,7 +447,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 14,
     alignItems: 'center',
-    minHeight: 50,
+    minHeight: 56,
   },
   resetButtonText: {
     color: '#FFFFFF',
@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     marginTop: 16,
-    minHeight: 50,
+    minHeight: 56,
   },
   errorText: {
     fontSize: 15,
