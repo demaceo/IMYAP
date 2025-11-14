@@ -113,7 +113,7 @@ const App = (): JSX.Element => {
   const openConvertedUrl = async () => {
     if (result?.url) {
       // Validate URL format before opening
-      if (!validateUrl(result.url) && !result.url.startsWith('https://')) {
+      if (!validateUrl(result.url)) {
         Alert.alert('Error', 'Invalid URL format. Cannot open link.');
         return;
       }
