@@ -1,0 +1,263 @@
+name: CI
+
+on:
+  push:
+    branches: [main, backend]
+  pull_request:
+    branches: [main, backend]
+
+jobs:
+  # Backend tests and build
+  backend:
+    name: Backend - Build & Test
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./backend
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npm run prisma:generate
+
+      - name: Run TypeScript compiler check
+        run: npx tsc --noEmit
+
+      - name: Check code formatting
+        run: npx prettier --check src/**/*.ts
+
+      - name: Build backend
+        run: npm run build
+
+      - name: Archive backend build artifacts
+        if: matrix.node-version == '20.x'
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-dist
+          path: backend/dist/
+          retention-days: 7
+
+  # Frontend tests and linting
+  frontend:
+    name: Frontend - Lint & Test
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Check code formatting
+        run: npx prettier --check "**/*.{ts,tsx,js,jsx,json}"
+
+      - name: Run frontend tests
+        run: npm test -- --coverage --passWithNoTests
+
+      - name: Upload coverage reports
+        if: matrix.node-version == '20.x'
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/coverage-final.json
+          flags: frontend
+          fail_ci_if_error: false
+
+  # TypeScript type checking for frontend
+  typescript:
+    name: Frontend - TypeScript Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run TypeScript compiler
+        run: npx tsc --noEmit
+
+  # iOS build check (macOS required)
+  ios-build:
+    name: iOS - Build Check
+    runs-on: macos-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          pod install
+
+      - name: Build iOS app
+        run: |
+          xcodebuild -workspace ios/IMYAP.xcworkspace \
+            -scheme IMYAP \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -arch x86_64 \
+            build \
+            CODE_SIGNING_ALLOWED=NO
+
+  # Android build check
+  android-build:
+    name: Android - Build Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
+      - name: Build Android APK
+        run: |
+          cd android
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 7
+
+  # Security audit
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Audit frontend dependencies
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Audit backend dependencies
+        working-directory: ./backend
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+  # Code quality checks
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Backend - Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Check for console.log statements
+        run: |
+          if grep -r "console.log" --include="*.ts" --include="*.tsx" --exclude-dir=node_modules --exclude-dir=dist .; then
+            echo "⚠️  Warning: console.log statements found in code"
+            exit 0
+          fi
+
+      - name: Check file sizes
+        run: |
+          find . -type f -size +500k \
+            -not -path "*/node_modules/*" \
+            -not -path "*/dist/*" \
+            -not -path "*/.git/*" \
+            -not -path "*/ios/*" \
+            -not -path "*/android/*" \
+            -exec ls -lh {} \;
