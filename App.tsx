@@ -406,7 +406,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 16,
-    gap: 12,
   },
   secondaryButton: {
     flex: 1,
