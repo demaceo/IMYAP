@@ -2,6 +2,8 @@
  * @format
  */
 
+/// <reference types="jest" />
+
 import {
   detectPlatform,
   validateUrl,
