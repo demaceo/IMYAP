@@ -128,7 +128,7 @@ export class SpotifyService {
     const query = `track:${trackName} artist:${artistName}`;
     const result = await this.spotifyApi.searchTracks(query, {limit: 1});
 
-    if (result.body.tracks?.items.length > 0) {
+    if (result.body.tracks?.items && result.body.tracks.items.length > 0) {
       return result.body.tracks.items[0].id;
     }
 
