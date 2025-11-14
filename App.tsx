@@ -14,6 +14,7 @@ import {
   Linking,
   AccessibilityInfo,
 } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import {
   detectPlatform,
   validateUrl,
@@ -64,13 +65,11 @@ const App = (): JSX.Element => {
       // that uses Apple Music API and Spotify API to convert playlists
       const sourcePlatform = detectPlatform(trimmedUrl);
 
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Simulate network delay (intentionally slow to demonstrate loading state in demo)
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       // For now, return a placeholder success message
       // In production, this would be the actual converted URL
-      const targetPlatform = getTargetPlatformName(sourcePlatform);
-
       setResult({
         success: true,
         url: `https://example.com/converted-playlist-${Date.now()}`,
@@ -78,18 +77,34 @@ const App = (): JSX.Element => {
 
       // Announce success to screen readers
       AccessibilityInfo.announceForAccessibility(
-        `Conversion successful! Your ${targetPlatform} playlist link is ready.`,
+        `Conversion successful! Your ${getTargetPlatformName(sourcePlatform)} playlist link is ready.`,
       );
     } catch (error) {
+      // Log the actual error for debugging
+      console.error('Playlist conversion error:', error);
+
+      // Determine error type and set a more specific message
+      let errorMessage = 'Failed to convert playlist. Please try again.';
+      if (error && typeof error === 'object') {
+        const err = error as Error;
+        if (err.name === 'TimeoutError') {
+          errorMessage =
+            'The conversion request timed out. Please check your internet connection and try again.';
+        } else if (err.message?.toLowerCase().includes('network')) {
+          errorMessage =
+            'Network error occurred. Please check your connection and try again.';
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+      }
+
       setResult({
         success: false,
-        error: 'Failed to convert playlist. Please try again.',
+        error: errorMessage,
       });
 
       // Announce error to screen readers
-      AccessibilityInfo.announceForAccessibility(
-        'Conversion failed. Please try again.',
-      );
+      AccessibilityInfo.announceForAccessibility(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -97,6 +112,12 @@ const App = (): JSX.Element => {
 
   const openConvertedUrl = async () => {
     if (result?.url) {
+      // Validate URL format before opening
+      if (!validateUrl(result.url) && !result.url.startsWith('https://')) {
+        Alert.alert('Error', 'Invalid URL format. Cannot open link.');
+        return;
+      }
+
       try {
         const supported = await Linking.canOpenURL(result.url);
         if (supported) {
@@ -112,7 +133,7 @@ const App = (): JSX.Element => {
 
   const copyToClipboard = () => {
     if (result?.url) {
-      // In production, use @react-native-clipboard/clipboard
+      Clipboard.setString(result.url);
       Alert.alert('Success', 'Link copied to clipboard!');
       AccessibilityInfo.announceForAccessibility('Link copied to clipboard');
     }
@@ -147,9 +168,7 @@ const App = (): JSX.Element => {
         </View>
 
         <View style={styles.content}>
-          <Text
-            style={styles.instructionText}
-            accessible={true}>
+          <Text style={styles.instructionText} accessible={true}>
             Paste a playlist or song URL from Apple Music or Spotify
           </Text>
 

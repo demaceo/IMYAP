@@ -7,15 +7,14 @@ export type Platform = 'apple' | 'spotify' | 'unknown';
 export interface URLValidationResult {
   isValid: boolean;
   platform: Platform;
-  type?: 'playlist' | 'song' | 'album';
 }
 
 /**
- * URL patterns for supported platforms
+ * URL patterns for supported platforms (HTTPS only for security)
  */
 const URL_PATTERNS = {
-  appleMusic: /^https?:\/\/(music\.apple\.com|itunes\.apple\.com)\/.*/i,
-  spotify: /^https?:\/\/(open\.spotify\.com|play\.spotify\.com)\/.*/i,
+  appleMusic: /^https:\/\/(music\.apple\.com|itunes\.apple\.com)\/.*/i,
+  spotify: /^https:\/\/(open\.spotify\.com|play\.spotify\.com)\/.*/i,
 };
 
 /**

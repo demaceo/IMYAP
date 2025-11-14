@@ -12,6 +12,14 @@ import {it} from '@jest/globals';
 // Note: test renderer must be required after react-native.
 import renderer from 'react-test-renderer';
 
+// Mock the Clipboard module
+jest.mock('@react-native-clipboard/clipboard', () => ({
+  default: {
+    setString: jest.fn(),
+    getString: jest.fn(),
+  },
+}));
+
 it('renders correctly', () => {
   renderer.create(<App />);
 });

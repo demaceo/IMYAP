@@ -15,7 +15,7 @@ describe('URL Validation Utilities', () => {
       const urls = [
         'https://music.apple.com/us/playlist/test/pl.123',
         'https://itunes.apple.com/us/album/test/123',
-        'http://music.apple.com/playlist/test',
+        'https://music.apple.com/playlist/test',
       ];
 
       urls.forEach(url => {
@@ -27,7 +27,7 @@ describe('URL Validation Utilities', () => {
       const urls = [
         'https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M',
         'https://play.spotify.com/track/123abc',
-        'http://open.spotify.com/album/test',
+        'https://open.spotify.com/album/test',
       ];
 
       urls.forEach(url => {
@@ -41,6 +41,17 @@ describe('URL Validation Utilities', () => {
         'https://soundcloud.com/artist/track',
         'not a url',
         '',
+      ];
+
+      urls.forEach(url => {
+        expect(detectPlatform(url)).toBe('unknown');
+      });
+    });
+
+    it('should reject HTTP URLs (HTTPS only for security)', () => {
+      const urls = [
+        'http://music.apple.com/playlist/test',
+        'http://open.spotify.com/album/test',
       ];
 
       urls.forEach(url => {
