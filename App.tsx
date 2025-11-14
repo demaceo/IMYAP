@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 14,
     alignItems: 'center',
-    minHeight: 50,
+    minHeight: 56,
   },
   secondaryButtonText: {
     color: '#1DB954',
