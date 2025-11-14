@@ -61,24 +61,67 @@ const App = (): JSX.Element => {
     setIsLoading(true);
 
     try {
-      // Simulate API call - In production, this would call a backend service
-      // that uses Apple Music API and Spotify API to convert playlists
       const sourcePlatform = detectPlatform(trimmedUrl);
 
-      // Simulate network delay (intentionally slow to demonstrate loading state in demo)
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // For now, return a placeholder success message
-      // In production, this would be the actual converted URL
-      setResult({
-        success: true,
-        url: `https://example.com/converted-playlist-${Date.now()}`,
+      // Call backend API
+      const apiUrl = 'http://localhost:3001/api/convert';
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({url: trimmedUrl}),
       });
 
-      // Announce success to screen readers
-      AccessibilityInfo.announceForAccessibility(
-        `Conversion successful! Your ${getTargetPlatformName(sourcePlatform)} playlist link is ready.`,
-      );
+      const data = await response.json();
+
+      if (data.success && data.url) {
+        setResult({
+          success: true,
+          url: data.url,
+        });
+
+        // Announce success to screen readers
+        AccessibilityInfo.announceForAccessibility(
+          `Conversion successful! Your ${getTargetPlatformName(sourcePlatform)} playlist link is ready.`,
+        );
+      } else {
+        // Handle error response from backend
+        let errorMessage =
+          data.error || 'Failed to convert playlist. Please try again.';
+
+        // Provide user-friendly messages based on error code
+        switch (data.errorCode) {
+          case 'AUTH_REQUIRED':
+            errorMessage =
+              'Authentication required. Please enable Spotify login in the backend.';
+            break;
+          case 'AUTH_EXPIRED':
+            errorMessage = 'Your session has expired. Please log in again.';
+            break;
+          case 'NO_MATCH':
+            errorMessage =
+              'Could not find matching tracks on the target platform.';
+            break;
+          case 'INVALID_URL':
+          case 'INVALID_SPOTIFY_URL':
+          case 'INVALID_APPLE_URL':
+            errorMessage =
+              'Invalid URL format. Please check the URL and try again.';
+            break;
+          case 'NO_TRACKS':
+            errorMessage = 'No tracks found in the playlist.';
+            break;
+        }
+
+        setResult({
+          success: false,
+          error: errorMessage,
+        });
+
+        // Announce error to screen readers
+        AccessibilityInfo.announceForAccessibility(errorMessage);
+      }
     } catch (error) {
       // Log the actual error for debugging
       console.error('Playlist conversion error:', error);
@@ -90,9 +133,12 @@ const App = (): JSX.Element => {
         if (err.name === 'TimeoutError') {
           errorMessage =
             'The conversion request timed out. Please check your internet connection and try again.';
-        } else if (err.message?.toLowerCase().includes('network')) {
+        } else if (
+          err.message?.toLowerCase().includes('network') ||
+          err.message?.toLowerCase().includes('fetch')
+        ) {
           errorMessage =
-            'Network error occurred. Please check your connection and try again.';
+            'Network error occurred. Make sure the backend server is running and try again.';
         } else if (err.message) {
           errorMessage = err.message;
         }
@@ -112,8 +158,11 @@ const App = (): JSX.Element => {
 
   const openConvertedUrl = async () => {
     if (result?.url) {
-      // Validate URL format before opening
-      if (!validateUrl(result.url)) {
+      // Basic URL validation for result links (accept any HTTPS URL)
+      if (
+        !result.url.startsWith('https://') &&
+        !result.url.startsWith('http://')
+      ) {
         Alert.alert('Error', 'Invalid URL format. Cannot open link.');
         return;
       }

@@ -54,3 +54,6 @@ ios/fastlane/test_output
 
 # testing
 /coverage
+
+
+.env*

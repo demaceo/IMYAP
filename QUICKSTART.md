@@ -5,6 +5,7 @@ Get IMYAP running on your machine in 5 minutes!
 ## Prerequisites
 
 Make sure you have:
+
 - Node.js 18+ installed
 - npm or yarn
 - For iOS: macOS with Xcode and CocoaPods
@@ -17,21 +18,66 @@ Make sure you have:
 git clone https://github.com/demaceo/IMYAP.git
 cd IMYAP
 
-# 2. Install dependencies
+# 2. Install frontend dependencies
 npm install
 
 # 3. (iOS only) Install iOS pods
 cd ios && pod install && cd ..
+
+# 4. Install backend dependencies
+cd backend
+npm install
+
+# 5. Set up environment variables
+cp .env.example .env
+# Edit backend/.env with your Spotify and Apple Music API credentials
+
+# 6. Initialize the database
+npm run prisma:generate
+npm run prisma:migrate
+cd ..
 ```
+
+## API Setup
+
+### Spotify API (Required)
+
+1. Go to <https://developer.spotify.com/dashboard>
+2. Create a new app
+3. Add redirect URI: `http://localhost:3001/auth/spotify/callback`
+4. Copy Client ID and Client Secret to `backend/.env`
+
+### Apple Music API (Required)
+
+1. Go to <https://developer.apple.com/account>
+2. Create a MusicKit key
+3. Download the `.p8` file to `backend/keys/`
+4. Update APPLE_TEAM_ID, APPLE_KEY_ID, and APPLE_PRIVATE_KEY_PATH in `backend/.env`
 
 ## Running the App
 
-### iOS (macOS required)
+### Step 1: Start the Backend Server
+
+```bash
+cd backend
+npm run dev
+# Backend will run on http://localhost:3001
+```
+
+Keep this terminal running.
+
+### Step 2: Start the Mobile App
+
+Open a new terminal and run:
+
+#### iOS (macOS required)
+
 ```bash
 npm run ios
 ```
 
-### Android
+#### Android
+
 ```bash
 # Make sure you have an emulator running or device connected
 npm run android
@@ -40,16 +86,19 @@ npm run android
 ## Development
 
 ### Start Metro Bundler
+
 ```bash
 npm start
 ```
 
 ### Run Tests
+
 ```bash
 npm test
 ```
 
 ### Lint Code
+
 ```bash
 npm run lint
 ```
@@ -66,7 +115,25 @@ npm run lint
 
 ## Troubleshooting
 
+### Backend Issues
+
+```bash
+# Connection refused / Backend not responding
+# Make sure backend is running on port 3001
+cd backend
+npm run dev
+
+# Check backend health
+curl http://localhost:3001/health
+
+# Database issues
+cd backend
+npm run prisma:generate
+npm run prisma:migrate
+```
+
 ### iOS Build Issues
+
 ```bash
 # Clean build
 cd ios
@@ -76,6 +143,7 @@ cd ..
 ```
 
 ### Android Build Issues
+
 ```bash
 # Clean Gradle
 cd android
@@ -84,12 +152,14 @@ cd ..
 ```
 
 ### Metro Issues
+
 ```bash
 # Reset Metro cache
 npm start -- --reset-cache
 ```
 
 ### Node Modules Issues
+
 ```bash
 # Reinstall dependencies
 rm -rf node_modules package-lock.json
@@ -99,24 +169,16 @@ npm install
 ## Next Steps
 
 - Read [README.md](README.md) for detailed documentation
-- Check [DESIGN.md](DESIGN.md) for UI/UX details
-- See [CONTRIBUTING.md](CONTRIBUTING.md) to contribute
-- Review [SUMMARY.md](SUMMARY.md) for project overview
+- Check [backend/README.md](backend/README.md) for backend API docs
+- See [DESIGN.md](DESIGN.md) for UI/UX details
+- Review [CONTRIBUTING.md](CONTRIBUTING.md) to contribute
+- Check [SUMMARY.md](SUMMARY.md) for project overview
 
 ## Need Help?
 
 - Check the [README](README.md) troubleshooting section
 - Review [React Native docs](https://reactnative.dev/docs/getting-started)
 - Open an issue on GitHub
-
-## API Integration (For Production)
-
-To enable actual conversion:
-
-1. Get Apple Music API credentials from [Apple Developer](https://developer.apple.com/documentation/applemusicapi/)
-2. Get Spotify API credentials from [Spotify for Developers](https://developer.spotify.com/)
-3. Set up a backend service to handle conversion
-4. Update `App.tsx` → `convertPlaylist()` function
 
 ---
 

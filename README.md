@@ -23,39 +23,95 @@ Before running this application, ensure you have the following installed:
 - **npm** or **yarn**
 - **React Native CLI**: `npm install -g react-native-cli`
 
-### For iOS Development:
+### For iOS Development
+
 - **macOS** (required for iOS development)
 - **Xcode** (latest version from the App Store)
 - **CocoaPods**: `sudo gem install cocoapods`
 
-### For Android Development:
+### For Android Development
+
 - **Android Studio** (latest version)
 - **Android SDK** (API level 23 or higher)
 - **Java Development Kit (JDK)** 11 or higher
 
 ## Installation
 
+### Frontend Setup
+
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/demaceo/IMYAP.git
 cd IMYAP
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. For iOS, install CocoaPods dependencies:
+
 ```bash
 cd ios
 pod install
 cd ..
 ```
 
+### Backend Setup
+
+4. Install backend dependencies:
+
+```bash
+cd backend
+npm install
+```
+
+5. Configure environment variables:
+
+```bash
+cp .env.example .env
+# Edit .env with your API credentials
+```
+
+6. Set up Spotify API:
+   - Go to <https://developer.spotify.com/dashboard>
+   - Create a new app
+   - Add redirect URI: `http://localhost:3001/auth/spotify/callback`
+   - Copy Client ID and Client Secret to backend/.env
+
+7. Set up Apple Music API:
+   - Go to <https://developer.apple.com/account>
+   - Create a MusicKit key
+   - Download the `.p8` file to `backend/keys/`
+   - Update APPLE_TEAM_ID, APPLE_KEY_ID, and APPLE_PRIVATE_KEY_PATH in backend/.env
+
+8. Initialize the database:
+
+```bash
+npm run prisma:generate
+npm run prisma:migrate
+cd ..
+```
+
 ## Running the App
 
+### Start the Backend Server
+
+First, start the backend server (required for playlist conversion):
+
+```bash
+cd backend
+npm run dev
+# Server will start on http://localhost:3001
+```
+
+Keep this terminal running and open a new terminal for the mobile app.
+
 ### iOS
+
 ```bash
 npm run ios
 # or
@@ -63,12 +119,15 @@ react-native run-ios
 ```
 
 To run on a specific device:
+
 ```bash
 react-native run-ios --device "iPhone 14 Pro"
 ```
 
 ### Android
+
 Make sure you have an Android emulator running or a device connected, then:
+
 ```bash
 npm run android
 # or
@@ -78,16 +137,19 @@ react-native run-android
 ## Development
 
 ### Start Metro Bundler
+
 ```bash
 npm start
 ```
 
 ### Running Tests
+
 ```bash
 npm test
 ```
 
 ### Linting
+
 ```bash
 npm run lint
 ```
@@ -113,16 +175,27 @@ npm run lint
 
 ## API Integration
 
-**Note:** This is a demo version with placeholder conversion logic. For full functionality, you'll need to:
+The app now includes a fully functional backend that handles playlist conversion:
 
-1. Set up authentication with the Apple Music API
-2. Set up authentication with the Spotify Web API
-3. Implement a backend service to handle the conversion logic
-4. Update the `convertPlaylist` function in `App.tsx` to call your backend API
+### Backend Features
 
-### Required APIs:
-- [Apple Music API](https://developer.apple.com/documentation/applemusicapi/)
-- [Spotify Web API](https://developer.spotify.com/documentation/web-api/)
+- ✅ Spotify OAuth authentication
+- ✅ Apple Music API integration with developer token generation
+- ✅ Playlist parsing and track matching
+- ✅ Cross-platform conversion (Spotify ↔ Apple Music)
+- ✅ RESTful API endpoint (`POST /convert`)
+
+### Setup Requirements
+
+- [Spotify Web API](https://developer.spotify.com/documentation/web-api/) credentials
+- [Apple Music API](https://developer.apple.com/documentation/applemusicapi/) credentials
+- Backend server running on <http://localhost:3001>
+
+### Current Limitations
+
+- Apple Music playlist creation requires user authentication (not yet implemented)
+- Track matching uses basic name/artist search (ISRC matching coming soon)
+- Single-track conversions and partial playlist results are supported
 
 ## Project Structure
 
@@ -134,6 +207,25 @@ IMYAP/
 ├── tsconfig.json          # TypeScript configuration
 ├── babel.config.js        # Babel configuration
 ├── metro.config.js        # Metro bundler configuration
+├── src/
+│   └── utils/
+│       └── urlValidation.ts  # URL validation utilities
+├── backend/               # Backend API server
+│   ├── src/
+│   │   ├── server.ts      # Express server entry point
+│   │   ├── routes/
+│   │   │   ├── authRoutes.ts      # Spotify OAuth routes
+│   │   │   └── convertRoutes.ts   # Conversion endpoint
+│   │   ├── services/
+│   │   │   ├── spotifyService.ts      # Spotify API client
+│   │   │   ├── appleMusicService.ts   # Apple Music API client
+│   │   │   └── conversionService.ts   # Conversion logic
+│   │   └── types/
+│   │       └── session.d.ts       # TypeScript session types
+│   ├── prisma/
+│   │   └── schema.prisma  # Database schema
+│   ├── package.json       # Backend dependencies
+│   └── tsconfig.json      # Backend TypeScript config
 ├── android/               # Android native code
 │   ├── app/
 │   │   ├── build.gradle
@@ -151,19 +243,33 @@ IMYAP/
 
 ## Technology Stack
 
+### Frontend
+
 - **React Native** 0.73.0 - Cross-platform mobile framework
 - **TypeScript** - Type-safe development
-- **React Navigation** - Navigation library (ready to integrate)
+- **React Navigation** - Navigation library
 - **React Native Gesture Handler** - Touch gesture handling
+
+### Backend
+
+- **Node.js** 18+ - JavaScript runtime
+- **Express** - Web framework
+- **TypeScript** - Type-safe backend development
+- **Prisma** - Database ORM
+- **Spotify Web API Node** - Spotify API client
+- **Axios** - HTTP client for Apple Music API
+- **jsonwebtoken** - JWT generation for Apple Music
 
 ## Troubleshooting
 
 ### iOS Build Issues
+
 - Clean build folder: Product → Clean Build Folder in Xcode
 - Reinstall pods: `cd ios && pod deintegrate && pod install`
 - Reset Metro cache: `npm start -- --reset-cache`
 
 ### Android Build Issues
+
 - Clean Gradle: `cd android && ./gradlew clean`
 - Reset cache: `npm start -- --reset-cache`
 - Check Android SDK path in `local.properties`
