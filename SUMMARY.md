@@ -121,7 +121,7 @@ Time:        1.383s
 ## 📱 Platform Support
 
 ### iOS
-- **Minimum Version**: iOS 11.0+
+- **Minimum Version**: iOS 13.4+
 - **Architecture**: arm64
 - **Language**: Objective-C++ / Swift bridging
 - **Package Manager**: CocoaPods
