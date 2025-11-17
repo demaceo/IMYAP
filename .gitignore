@@ -57,3 +57,4 @@ ios/fastlane/test_output
 
 
 .env*
+keys/*.p8

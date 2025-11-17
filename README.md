@@ -79,7 +79,7 @@ cp .env.example .env
 6. Set up Spotify API:
    - Go to <https://developer.spotify.com/dashboard>
    - Create a new app
-   - Add redirect URI: `http://localhost:3001/auth/spotify/callback`
+   - Add redirect URI: `http://127.0.0.1:3001/auth/spotify/callback`
    - Copy Client ID and Client Secret to backend/.env
 
 7. Set up Apple Music API:
