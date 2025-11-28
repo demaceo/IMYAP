@@ -30,11 +30,17 @@ local.properties
 .cxx/
 *.keystore
 !debug.keystore
+android/gradle.properties
 
 # node.js
 node_modules/
 npm-debug.log
 yarn-error.log
+
+# Environment variables
+.env
+.env.*
+!.env.example
 
 # fastlane
 ios/fastlane/report.xml

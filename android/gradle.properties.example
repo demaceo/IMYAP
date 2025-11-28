@@ -1,0 +1,18 @@
+# Android Release Signing Configuration
+# Copy this file to gradle.properties and fill in your values
+# NEVER commit gradle.properties with real credentials!
+
+# Path to your release keystore file
+#IMYAP_RELEASE_STORE_FILE=/path/to/your/keystore.jks
+
+# Your keystore alias
+#IMYAP_RELEASE_KEY_ALIAS=your-key-alias
+
+# Your keystore password
+#IMYAP_RELEASE_STORE_PASSWORD=your-store-password
+
+# Your key password
+#IMYAP_RELEASE_KEY_PASSWORD=your-key-password
+
+# To create a keystore, run:
+# keytool -genkeypair -v -storetype PKCS12 -keystore imyap-release.keystore -alias imyap -keyalg RSA -keysize 2048 -validity 10000

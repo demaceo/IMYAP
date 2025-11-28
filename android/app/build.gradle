@@ -10,7 +10,7 @@ react {
 }
 
 def enableSeparateBuildPerCPUArchitecture = false
-def enableProguardInReleaseBuilds = false
+def enableProguardInReleaseBuilds = true
 def jscFlavor = 'org.webkit:android-jsc:+'
 
 android {
@@ -32,15 +32,38 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            // Release signing configuration
+            // To build a release APK, you need to create a keystore and configure these properties:
+            // Option 1: In ~/.gradle/gradle.properties or android/gradle.properties (not committed):
+            //   IMYAP_RELEASE_STORE_FILE=/path/to/your/keystore.jks
+            //   IMYAP_RELEASE_KEY_ALIAS=your-key-alias
+            //   IMYAP_RELEASE_STORE_PASSWORD=your-store-password
+            //   IMYAP_RELEASE_KEY_PASSWORD=your-key-password
+            // Option 2: Set environment variables with the same names
+            //
+            // For now, release builds will fail if these are not set (secure by default)
+            if (project.hasProperty('IMYAP_RELEASE_STORE_FILE')) {
+                storeFile file(IMYAP_RELEASE_STORE_FILE)
+                storePassword IMYAP_RELEASE_STORE_PASSWORD
+                keyAlias IMYAP_RELEASE_KEY_ALIAS
+                keyPassword IMYAP_RELEASE_KEY_PASSWORD
+            }
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            signingConfig signingConfigs.debug
+            // Only sign release builds if release signing is configured
+            // This prevents accidentally creating insecure release builds with debug keys
+            if (project.hasProperty('IMYAP_RELEASE_STORE_FILE')) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            shrinkResources enableProguardInReleaseBuilds
         }
     }
 }
